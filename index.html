@@ -1,32 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- Load Brython engine -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="https://jsdelivr.net"></script>
     <script type="text/javascript" src="https://jsdelivr.net"></script>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
-        button { padding: 10px 20px; font-size: 18px; margin-top: 20px; cursor: pointer; }
+        body { text-align: center; font-family: sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 20px; overflow: hidden; }
+        #game-box { position: relative; width: 90vw; height: 60vh; border: 2px solid #444; margin: 10px auto; background: #111; border-radius: 8px; overflow: hidden; }
+        #target { position: absolute; width: 50px; height: 50px; background: #ff4757; border-radius: 50%; display: none; cursor: pointer; }
+        button { padding: 12px 24px; font-size: 16px; background: #2ed573; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .stats { display: flex; justify-content: space-around; max-width: 400px; margin: 0 auto; font-size: 18px; }
     </style>
 </head>
 <body onload="brython()">
 
-    <h1>My First Python Web Game</h1>
-    <p>Score: <span id="score">0</span></p>
-    <button id="click_btn">Click Me Fast!</button>
+    <h2>Catch the Red Dot! 🔴</h2>
+    <div class="stats">
+        <p>Score: <span id="score">0</span></p>
+        <p>Time Left: <span id="timer">15</span>s</p>
+    </div>
+    
+    <div id="game-box">
+        <div id="target"></div>
+    </div>
 
-    <!-- Write your Python logic right here! -->
+    <button id="start-btn">Start Game</button>
+
     <script type="text/python">
-        from browser import document
+        from browser import document, window, timer
+        import random
 
         score = 0
+        time_left = 15
+        game_running = False
+        game_timer = None
 
-        def increase_score(ev):
+        def move_target():
+            # Get dimensions of the game area
+            box = document["game-box"]
+            max_x = box.offsetWidth - 50
+            max_y = box.offsetHeight - 50
+            
+            # Generate random positions
+            new_x = random.randint(0, max(0, max_x))
+            new_y = random.randint(0, max(0, max_y))
+            
+            # Apply to the target element
+            target = document["target"]
+            target.style.left = f"{new_x}px"
+            target.style.top = f"{new_y}px"
+
+        def on_target_click(ev):
             global score
-            score += 1
-            document["score"].text = str(score)
+            if game_running:
+                score += 1
+                document["score"].text = str(score)
+                move_target()
 
-        document["click_btn"].bind("click", increase_score)
+        def update_clock():
+            global time_left, game_running, game_timer
+            time_left -= 1
+            document["timer"].text = str(time_left)
+            
+            if time_left <= 0:
+                # Game Over logic
+                game_running = False
+                timer.clear_interval(game_timer)
+                document["target"].style.display = "none"
+                document["start-btn"].style.display = "inline-block"
+                document["start-btn"].text = "Play Again"
+                window.alert(f"Game Over! Your final score is: {score}")
+
+        def start_game(ev):
+            global score, time_left, game_running, game_timer
+            score = 0
+            time_left = 15
+            game_running = True
+            
+            document["score"].text = str(score)
+            document["timer"].text = str(time_left)
+            document["start-btn"].style.display = "none"
+            document["target"].style.display = "block"
+            
+            move_target()
+            # Run the update_clock function every 1000ms (1 second)
+            game_timer = timer.set_interval(update_clock, 1000)
+
+        # Bind events to Python functions
+        document["start-btn"].bind("click", start_game)
+        document["target"].bind("click", on_target_click)
+        # Add touch support for mobile screens
+        document["target"].bind("touchstart", on_target_click)
     </script>
 </body>
 </html>
