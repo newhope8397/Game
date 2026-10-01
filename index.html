@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Load Brython engine -->
+    <script type="text/javascript" src="https://jsdelivr.net"></script>
+    <script type="text/javascript" src="https://jsdelivr.net"></script>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background: #222; color: white; }
+        button { padding: 10px 20px; font-size: 18px; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body onload="brython()">
+
+    <h1>My First Python Web Game</h1>
+    <p>Score: <span id="score">0</span></p>
+    <button id="click_btn">Click Me Fast!</button>
+
+    <!-- Write your Python logic right here! -->
+    <script type="text/python">
+        from browser import document
+
+        score = 0
+
+        def increase_score(ev):
+            global score
+            score += 1
+            document["score"].text = str(score)
+
+        document["click_btn"].bind("click", increase_score)
+    </script>
+</body>
+</html>
